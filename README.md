@@ -1,5 +1,28 @@
 # .NET Core SDK
 
+netcore app3.0 sdk 3.0.100-*
+
+{
+  "tools": {
+    "dotnet": "3.0.100-preview4-010386"
+  },
+  "msbuild-sdks": {
+    "Microsoft.DotNet.Arcade.Sdk": "1.0.0-beta.19112.3"
+  }
+} 
+
+  Restore completed in 1.01 sec for E:\Beta\dot64\dotnet-cli\vendor\core-sdk\src\core-sdk-tasks\core-sdk-tasks.csproj.
+  Installing Microsoft.NETCore.DotNetAppHost 3.0.0-preview3-27419-3.
+  Installing Microsoft.NETCore.DotNetHostResolver 3.0.0-preview3-27419-3.
+  Installing Microsoft.NETCore.DotNetHostPolicy 3.0.0-preview3-27419-3.
+  Installing Microsoft.NETCore.Platforms 3.0.0-preview3.19115.9.
+  Installing Microsoft.NETCore.App 3.0.0-preview3-27419-3.
+  Installing Microsoft.Dotnet.WinForms.ProjectTemplates 3.0.0-preview3-27420-7.
+  Installing Microsoft.DotNet.Common.ProjectTemplates.3.0 1.0.2-beta5.19066.2.
+  Installing Microsoft.Dotnet.Wpf.ProjectTemplates 3.0.0-preview3-27420-7.
+  Installing Microsoft.DotNet.Common.ItemTemplates 1.0.2-beta5.19066.2.
+  
+
 [![Join the chat at https://gitter.im/dotnet/cli](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/cli?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This repo contains the source code for the cross-platform [.NET Core](http://github.com/dotnet/core) SDK. It aggregates the .NET Toolchain, the .NET Core runtime, the templates, the offline packages cache, the ASP.NET Runtime store, and the .NET Core Windows Desktop runtime. It produces zip, tarballs, and native packages for various supported platforms.
