@@ -3,276 +3,118 @@ trigger:
 - release/*
 
 variables:
-- name: _PublishBlobFeedUrl
-  value: https://dotnetcli.blob.core.windows.net/dotnet/index.json
-- name: _PublishChecksumsBlobFeedUrl
-  value: https://dotnetclichecksums.blob.core.windows.net/dotnet/index.json
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-  - group: DotNet-DotNetCli-Storage
+  teamName: Roslyn-Project-System
+  ${{ if eq(variables['System.TeamProject'], 'public') }}:
+    PB_PublishBlobFeedKey:
+    PB_PublishBlobFeedUrl:
+    _DotNetPublishToBlobFeed: false
+  ${{ if ne(variables['System.TeamProject'], 'public') }}:
+    PB_PublishBlobFeedUrl: https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json
+    _DotNetPublishToBlobFeed: true
 
-jobs:
+phases:
 - template: /eng/build.yml
   parameters:
     agentOs: Windows_NT
-    pool:
-      ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
+    queue:
+      ${{ if eq(variables['System.TeamProject'], 'public') }}:
         name: dotnet-external-temp
-      ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+      ${{ if ne(variables['System.TeamProject'], 'public') }}:
         name: dotnet-internal-temp
-    timeoutInMinutes: 180
-    strategy:
+      parallel: 2
+      timeoutInMinutes: 120
       matrix:
-        # Public-only builds
-        ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
-          Build_Debug_x86:
+        ${{ if eq(variables['System.TeamProject'], 'public') }}:
+          Build_Debug:
             _BuildConfig: Debug
-            _BuildArchitecture: x86
-            _DOTNET_CLI_UI_LANGUAGE: ''
-            _DropSuffix: ''
-          Build_ES_Debug_x64:
-            _BuildConfig: Debug
-            _BuildArchitecture: x64
-            _DOTNET_CLI_UI_LANGUAGE: es
-            _DropSuffix: ''
-          Build_DropSuffix_Release_x64:
-            _BuildConfig: Release
-            _BuildArchitecture: x64
-            _DOTNET_CLI_UI_LANGUAGE: ''
-            _DropSuffix: true
-        # Internal-only builds
-        ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-          Build_Release_x86:
-            _BuildConfig: Release
-            _BuildArchitecture: x86
-            _DOTNET_CLI_UI_LANGUAGE: ''
-            _DropSuffix: ''
-        # Always run builds
-        Build_Release_x64:
-          _BuildConfig: Release
-          _BuildArchitecture: x64
-          _DOTNET_CLI_UI_LANGUAGE: ''
-          _DropSuffix: ''
-        Build_Release_arm:
-          _BuildConfig: Release
-          _BuildArchitecture: arm
-          _DOTNET_CLI_UI_LANGUAGE: ''
-          _DropSuffix: ''
-          _AdditionalBuildParameters: '/p:DisableSourceLink=true'
-
-- template: /eng/build.yml
-  parameters:
-    agentOs: Linux
-    pool:
-      name: Hosted Ubuntu 1604
-    timeoutInMinutes: 180
-    strategy:
-      matrix:
-        ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
-          Build_Ubuntu_14_04_Release_x64:
-            _BuildConfig: Release
-            _DockerParameter: '--docker ubuntu.14.04'
-            _LinuxPortable: ''
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'x64'
-            _DropSuffix: ''
-          Build_Ubuntu_16_04_Debug_x64:
-            _BuildConfig: Debug
-            _DockerParameter: '--docker ubuntu.16.04'
-            _LinuxPortable: ''
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'x64'
-            _DropSuffix: ''
-          Build_Ubuntu_18_04_Debug_x64:
-            _BuildConfig: Debug
-            _DockerParameter: '--docker ubuntu.18.04'
-            _LinuxPortable: '--linux-portable'
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'x64'
-            _DropSuffix: ''
-          Build_Fedora_27_Debug_x64:
-            _BuildConfig: Debug
-            _DockerParameter: '--docker fedora.27'
-            _LinuxPortable: '--linux-portable'
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'x64'
-            _DropSuffix: ''
-          Build_OpenSUSE_42_3_Debug_x64:
-            _BuildConfig: Debug
-            _DockerParameter: '--docker opensuse.42.3'
-            _LinuxPortable: '--linux-portable'
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'x64'
-            _DropSuffix: ''
-          Build_CentOS_7_1_Debug_x64:
-            _BuildConfig: Debug
-            _DockerParameter: '--docker centos'
-            _LinuxPortable: ''
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'x64'
-            _DropSuffix: ''
-          Build_Debian_8_2_Debug_x64:
-            _BuildConfig: Debug
-            _DockerParameter: '--docker debian'
-            _LinuxPortable: ''
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'x64'
-            _DropSuffix: ''
-          Build_Rhel_7_2_Release_x64:
-            _BuildConfig: Release
-            _DockerParameter: '--docker rhel'
-            _LinuxPortable: ''
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'x64'
-            _DropSuffix: ''
-          Build_Rhel_6_Debug_x64:
-            _BuildConfig: Debug
-            _DockerParameter: '--docker rhel.6'
-            _LinuxPortable: ''
-            _RuntimeIdentifier: '--runtime-id rhel.6-x64'
-            _BuildArchitecture: 'x64'
-            _DropSuffix: ''
-          Build_Arm_Debug:
-            _BuildConfig: Debug
-            _DockerParameter: ''
-            _LinuxPortable: '--linux-portable'
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'arm'
-            _DropSuffix: ''
-          Build_Arm64_Debug:
-            _BuildConfig: Debug
-            _DockerParameter: ''
-            _LinuxPortable: '--linux-portable'
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'arm64'
-            _DropSuffix: ''
-          Build_Linux_musl_Debug_x64:
-            _BuildConfig: Debug
-            _DockerParameter: '--docker alpine.3.6'
-            _LinuxPortable: ''
-            _RuntimeIdentifier: '--runtime-id linux-musl-x64'
-            _BuildArchitecture: 'x64'
-            _DropSuffix: ''
-          Build_LinuxPortable_NoSuffix_Release_x64:
-            _BuildConfig: Release
-            _DockerParameter: ''
-            _LinuxPortable: '--linux-portable'
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'x64'
-            _DropSuffix: true
-          Build_Arm_NoSuffix_Release:
-            _BuildConfig: Release
-            _DockerParameter: ''
-            _LinuxPortable: '--linux-portable'
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'arm'
-            _DropSuffix: true
-        ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-          Build_Arm_Release:
-            _BuildConfig: Release
-            _DockerParameter: ''
-            _LinuxPortable: '--linux-portable'
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'arm'
-            _DropSuffix: ''
-          Build_Arm64_Release:
-            _BuildConfig: Release
-            _DockerParameter: ''
-            _LinuxPortable: '--linux-portable'
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'arm64'
-            _DropSuffix: ''
-          Build_Rhel_6_Release_x64:
-            _BuildConfig: Release
-            _DockerParameter: '--docker rhel.6'
-            _LinuxPortable: ''
-            _RuntimeIdentifier: '--runtime-id rhel.6-x64'
-            _BuildArchitecture: 'x64'
-            _DropSuffix: ''
-            _AdditionalBuildParameters: '/p:DisableSourceLink=true'
-          Build_Linux_musl_Release_x64:
-            _BuildConfig: Release
-            _DockerParameter: '--docker alpine.3.6'
-            _LinuxPortable: ''
-            _RuntimeIdentifier: '--runtime-id linux-musl-x64'
-            _BuildArchitecture: 'x64'
-            _DropSuffix: ''
-          Build_Linux_Portable_Deb_Release_x64:
-            _BuildConfig: Release
-            _DockerParameter: '--docker ubuntu.16.04'
-            _LinuxPortable: '--linux-portable'
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'x64'
-            _DropSuffix: ''
-            # Do not publish zips and tarballs. The linux-x64 binaries are
-            # already published by Build_LinuxPortable_Release_x64
-            _AdditionalBuildParameters: '/p:PublishBinariesAndBadge=false'
-          Build_Linux_Portable_Rpm_Release_x64:
-            _BuildConfig: Release
-            _DockerParameter: '--docker rhel'
-            _LinuxPortable: '--linux-portable'
-            _RuntimeIdentifier: ''
-            _BuildArchitecture: 'x64'
-            _DropSuffix: ''
-            # Do not publish zips and tarballs. The linux-x64 binaries are
-            # already published by Build_LinuxPortable_Release_x64
-            _AdditionalBuildParameters: '/p:PublishBinariesAndBadge=false'
-        Build_LinuxPortable_Release_x64:
-          _BuildConfig: Release
-          _DockerParameter: ''
-          _LinuxPortable: '--linux-portable'
-          _RuntimeIdentifier: ''
-          _BuildArchitecture: 'x64'
-          _DropSuffix: ''
-
-- template: /eng/build.yml
-  parameters:
-    agentOs: Darwin
-    pool: 
-      name: Hosted macOS
-    timeoutInMinutes: 180
-    strategy:
-      matrix:
+            _PublishType: none
+            _SignType: test
         Build_Release:
           _BuildConfig: Release
+          ${{ if eq(variables['System.TeamProject'], 'public') }}:
+            _PublishType: none
+            _SignType: test
+          ${{ if ne(variables['System.TeamProject'], 'public') }}:
+            _PublishType: blob
+            _SignType: real
 
-# https://github.com/dotnet/core-sdk/issues/248
-# - template: /eng/build.yml
-#   parameters:
-#     agentOs: FreeBSD
-#     queue: 
-#       name: dnceng-freebsd-internal
-#       timeoutInMinutes: 180
-#       matrix:
-#         Build_Release:
-#           _BuildConfig: Release
-#           _AdditionalBuildParameters: '/p:DisableSourceLink=true /p:DISABLE_CROSSGEN=true'
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/build.yml
+    parameters:
+      agentOs: Windows_NT_FullFramework
+      queue:
+        name: dotnet-external-temp
+        parallel: 2
+        timeoutInMinutes: 120
+        matrix:
+          Build_Debug:
+            _BuildConfig: Debug
+            _PublishType: none
+            _SignType: test
+          Build_Release:
+            _BuildConfig: Release
+            _PublishType: none
+            _SignType: test
+
+  - template: /eng/build.yml
+    parameters:
+      agentOs: Ubuntu_14_04
+      queue: 
+        name: Hosted Ubuntu 1604
+        parallel: 2
+        timeoutInMinutes: 120
+        matrix:
+          Build_Debug:
+            _BuildConfig: Debug
+            _PublishType: none
+            _SignType: test
+          Build_Release:
+            _BuildConfig: Release
+            _PublishType: none
+            _SignType: test
+      variables:
+        _PREVIEW_VSTS_DOCKER_IMAGE: microsoft/dotnet-buildtools-prereqs:ubuntu-14.04-cross-0cd4667-20170319080304
+
+  - template: /eng/build.yml
+    parameters:
+      agentOs: Ubuntu_16_04
+      queue: 
+        name: Hosted Ubuntu 1604
+        parallel: 2
+        timeoutInMinutes: 120
+        matrix:
+          Build_Debug:
+            _BuildConfig: Debug
+            _PublishType: none
+            _SignType: test
+          Build_Release:
+            _BuildConfig: Release
+            _PublishType: none
+            _SignType: test
+      variables:
+        _PREVIEW_VSTS_DOCKER_IMAGE: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-cross-e435274-20180628134544
+
+  - template: /eng/build.yml
+    parameters:
+      agentOs: Darwin
+      queue: 
+        name: DotNetCore-Mac
+        parallel: 2
+        timeoutInMinutes: 120
+        matrix:
+          Build_Debug:
+            _BuildConfig: Debug
+            _PublishType: none
+            _SignType: test
+          Build_Release:
+            _BuildConfig: Release
+            _PublishType: none
+            _SignType: test
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-  - job: Copy_SDK_To_Latest
-    dependsOn:
-      - Windows_NT
-      - Linux
-      - Darwin
-    pool:
-      name: Hosted VS2017
-    condition: succeeded()
-    variables:
-      - group: DotNet-DotNetCli-Storage
-    steps:
-      - script: eng/CopyToLatest.cmd
-                /p:DotnetPublishSdkAssetsBlobFeedUrl=$(_PublishBlobFeedUrl)
-                /p:DotNetPublishSdkAssetsBlobFeedKey=$(dotnetcli-storage-key)
-                /p:DotnetPublishChecksumsBlobFeedUrl=$(_PublishChecksumsBlobFeedUrl)
-                /p:DotNetPublishChecksumsBlobFeedKey=$(dotnetclichecksums-storage-key)
-        displayName: Copy to latest
-
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-  - template: /eng/common/templates/job/publish-build-assets.yml
+  - template: /eng/common/templates/phases/publish-build-assets.yml
     parameters:
       dependsOn:
         - Windows_NT
-        - Linux
-        - Darwin
-      enablePublishBuildArtifacts: true
-      pool:
-        vmImage: vs2017-win2016
+      queue:
+        name: Hosted VS2017

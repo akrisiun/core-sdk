@@ -1,4 +1,9 @@
 function InitializeCustomSDKToolset {    
+  if ($env:TestFullMSBuild -eq "true") {
+     $env:DOTNET_SDK_TEST_MSBUILD_PATH = InitializeVisualStudioMSBuild -install:$false -vsRequirements:$GlobalJson.tools.'vs-opt'
+     Write-Host "INFO: Tests will run against full MSBuild in $env:DOTNET_SDK_TEST_MSBUILD_PATH"
+  }
+
   if (-not $restore) {
     return
   }
@@ -9,22 +14,33 @@ function InitializeCustomSDKToolset {
     return
   }
 
-  # InstallDotNetSharedFramework "1.0.5"
-  # InstallDotNetSharedFramework "1.1.2"
-  # InstallDotNetSharedFramework "2.1.0"
+  $cli = InitializeDotnetCli -install:$true
+  InstallDotNetSharedFramework "1.0.5"
+  InstallDotNetSharedFramework "1.1.2"
+  InstallDotNetSharedFramework "2.1.0"
+  InstallDotNetSharedFramework "2.2.2"
 
   CreateBuildEnvScript
+  InstallNuget
+}
+
+function InstallNuGet {
+  $NugetInstallDir = Join-Path $ArtifactsDir ".nuget"
+  $NugetExe = Join-Path $NugetInstallDir "nuget.exe"
+
+  if (!(Test-Path -Path $NugetExe)) {
+    Create-Directory $NugetInstallDir
+    Invoke-WebRequest "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe" -UseBasicParsing -OutFile $NugetExe
+  }
 }
 
 function CreateBuildEnvScript()
 {
-  InitializeBuildTool | Out-Null # Make sure DOTNET_INSTALL_DIR is set
-
   Create-Directory $ArtifactsDir
-  $scriptPath = Join-Path $ArtifactsDir "core-sdk-build-env.bat"
+  $scriptPath = Join-Path $ArtifactsDir "sdk-build-env.bat"
   $scriptContents = @"
 @echo off
-title Core SDK Build ($RepoRoot)
+title SDK Build ($RepoRoot)
 set DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 set DOTNET_MULTILEVEL_LOOKUP=0
 

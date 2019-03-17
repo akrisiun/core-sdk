@@ -1,8 +1,14 @@
 {
   "tools": {
-    "dotnet": "3.0.100-preview4-010386"
+    "dotnet": "3.0.100-dev2",
+    "vs-opt": {
+      "version": "15.9"
+    }
+  },
+  "sdk": {
+     "version": "3.0.100-dev2"
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "1.0.0-beta.19112.3"
+     "Microsoft.DotNet.Arcade.Sdk": "1.0.0-dev"
   }
 }

@@ -1,27 +1,36 @@
-<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) .NET Foundation and contributors. All rights reserved. Licensed under the MIT license. See License.txt in the project root for full license information. -->
 <Project>
+
   <PropertyGroup>
     <ImportNetSdkFromRepoToolset>false</ImportNetSdkFromRepoToolset>
+    <LangVersion>Latest</LangVersion>
+    <UsingToolMicrosoftNetCompilers>false</UsingToolMicrosoftNetCompilers>
   </PropertyGroup>
 
+  <!--
+  -->
   <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
 
   <PropertyGroup>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
-
     <IsShipping>true</IsShipping>
-    <CoreSdkTargetFramework>netcoreapp3.0</CoreSdkTargetFramework>
-
-    <ArtifactsShippingSymbolsDir>$(ArtifactsDir)symbols\$(Configuration)\Shipping</ArtifactsShippingSymbolsDir>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(DisableSourceLink)' == 'true'">
-    <EnableSourceLink>false</EnableSourceLink>
-    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
-    <DeterministicSourcePaths>false</DeterministicSourcePaths>
-    <!-- Normally set by sourcelink, and needed by the Pack targets -->
-    <RepositoryUrl>https://github.com/dotnet/core-sdk</RepositoryUrl>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <TestRunnerAdditionalArguments>-parallel none</TestRunnerAdditionalArguments>
+  </PropertyGroup>
+
 </Project>
